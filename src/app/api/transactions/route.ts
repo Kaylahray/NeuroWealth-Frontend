@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
 import {
-  type TransactionRequestPayload,
   buildPendingTransaction,
   buildTransactionQuote,
   parseTransactionKind,
+  TransactionRequestPayload,
   validateTransactionValues,
-} from "@/lib/transactions";
+} from "@/src/lib/transactions";
+import { NextResponse } from "next/server";
 
 function resolveEndpoint(baseUrl: string, pathOrUrl: string): string {
   if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
@@ -13,7 +13,9 @@ function resolveEndpoint(baseUrl: string, pathOrUrl: string): string {
   }
 
   const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
-  const normalizedPath = pathOrUrl.startsWith("/") ? pathOrUrl.slice(1) : pathOrUrl;
+  const normalizedPath = pathOrUrl.startsWith("/")
+    ? pathOrUrl.slice(1)
+    : pathOrUrl;
 
   return new URL(normalizedPath, normalizedBase).toString();
 }
@@ -27,7 +29,8 @@ export async function POST(request: Request) {
     walletConnected: false,
   };
   const apiBaseUrl = process.env.NEUROWEALTH_API_BASE_URL;
-  const transactionPath = process.env.NEUROWEALTH_TRANSACTIONS_PATH ?? "/transactions";
+  const transactionPath =
+    process.env.NEUROWEALTH_TRANSACTIONS_PATH ?? "/transactions";
 
   if (apiBaseUrl) {
     const response = await fetch(resolveEndpoint(apiBaseUrl, transactionPath), {
@@ -49,7 +52,8 @@ export async function POST(request: Request) {
     return new NextResponse(text, {
       status: response.status,
       headers: {
-        "Content-Type": response.headers.get("Content-Type") ?? "application/json",
+        "Content-Type":
+          response.headers.get("Content-Type") ?? "application/json",
       },
     });
   }

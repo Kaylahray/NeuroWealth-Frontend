@@ -4,15 +4,8 @@ import { startTransition, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./transaction-flow.module.css";
-import { formatCurrency, formatTimestamp } from "@/lib/formatters";
+import { formatCurrency, formatTimestamp } from "@/src/lib/formatters";
 import {
-  type PendingTransaction,
-  type TransactionFieldErrors,
-  type TransactionFormValues,
-  type TransactionKind,
-  type TransactionPreviewState,
-  type TransactionQuote,
-  type TransactionReceipt,
   buildPreviewSnapshot,
   buildStatusChips,
   buildTransactionReceipt,
@@ -20,8 +13,15 @@ import {
   getTransactionContext,
   parsePreviewState,
   parseTransactionKind,
+  PendingTransaction,
+  TransactionFieldErrors,
+  TransactionFormValues,
+  TransactionKind,
+  TransactionPreviewState,
+  TransactionQuote,
+  TransactionReceipt,
   validateTransactionValues,
-} from "@/lib/transactions";
+} from "@/src/lib/transactions";
 
 type ThemeMode = "light" | "dark";
 
@@ -67,11 +67,15 @@ export function TransactionFlow() {
   const timeoutRef = useRef<number | null>(null);
 
   const [theme, setTheme] = useState<ThemeMode>(() => getTheme(searchParams));
-  const [kind, setKind] = useState<TransactionKind>(() => parseTransactionKind(searchParams.get("kind")));
+  const [kind, setKind] = useState<TransactionKind>(() =>
+    parseTransactionKind(searchParams.get("kind")),
+  );
   const [preview, setPreview] = useState<TransactionPreviewState>(() =>
     parsePreviewState(searchParams.get("preview")),
   );
-  const [stage, setStage] = useState<"form" | "confirm" | "pending" | "success" | "failure">("form");
+  const [stage, setStage] = useState<
+    "form" | "confirm" | "pending" | "success" | "failure"
+  >("form");
   const [formValues, setFormValues] = useState<TransactionFormValues>(() =>
     getDefaultTransactionValues(kind),
   );
@@ -123,7 +127,11 @@ export function TransactionFlow() {
     };
   }, []);
 
-  function syncRoute(nextTheme: ThemeMode, nextKind: TransactionKind, nextPreview: TransactionPreviewState) {
+  function syncRoute(
+    nextTheme: ThemeMode,
+    nextKind: TransactionKind,
+    nextPreview: TransactionPreviewState,
+  ) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("theme", nextTheme);
     params.set("kind", nextKind);
@@ -135,7 +143,9 @@ export function TransactionFlow() {
     }
 
     startTransition(() => {
-      router.replace(`/dashboard/transactions?${params.toString()}`, { scroll: false });
+      router.replace(`/dashboard/transactions?${params.toString()}`, {
+        scroll: false,
+      });
     });
   }
 
@@ -154,7 +164,10 @@ export function TransactionFlow() {
     syncRoute(theme, kind, nextPreview);
   }
 
-  function updateField<K extends keyof TransactionFormValues>(field: K, value: TransactionFormValues[K]) {
+  function updateField<K extends keyof TransactionFormValues>(
+    field: K,
+    value: TransactionFormValues[K],
+  ) {
     setFormValues((current) => ({
       ...current,
       [field]: value,
@@ -209,7 +222,9 @@ export function TransactionFlow() {
           fieldErrors?: TransactionFieldErrors;
         };
         setFieldErrors(errorPayload.fieldErrors ?? {});
-        setRequestMessage(errorPayload.message ?? "Unable to prepare the confirmation step.");
+        setRequestMessage(
+          errorPayload.message ?? "Unable to prepare the confirmation step.",
+        );
         return;
       }
 
@@ -218,7 +233,9 @@ export function TransactionFlow() {
       setQuote(successPayload.quote);
       setStage("confirm");
     } catch {
-      setRequestMessage("Quote request failed. Check your connection and try again.");
+      setRequestMessage(
+        "Quote request failed. Check your connection and try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -253,7 +270,10 @@ export function TransactionFlow() {
           fieldErrors?: TransactionFieldErrors;
         };
         setFieldErrors(errorPayload.fieldErrors ?? {});
-        setRequestMessage(errorPayload.message ?? "Submission failed before reaching the network.");
+        setRequestMessage(
+          errorPayload.message ??
+            "Submission failed before reaching the network.",
+        );
         setStage("form");
         return;
       }
@@ -266,7 +286,9 @@ export function TransactionFlow() {
       timeoutRef.current = window.setTimeout(() => {
         const nextReceipt = buildTransactionReceipt(
           successPayload.pending,
-          successPayload.pending.nextStatus === "failure" ? "failure" : "success",
+          successPayload.pending.nextStatus === "failure"
+            ? "failure"
+            : "success",
         );
 
         setReceipt(nextReceipt);
@@ -299,7 +321,11 @@ export function TransactionFlow() {
 
   const amountInputClassName = [
     styles.input,
-    getInputStateClassName(formValues.amount, fieldErrors.amount, Boolean(formValues.amount) && !fieldErrors.amount),
+    getInputStateClassName(
+      formValues.amount,
+      fieldErrors.amount,
+      Boolean(formValues.amount) && !fieldErrors.amount,
+    ),
   ].join(" ");
 
   const walletInputClassName = [
@@ -307,7 +333,9 @@ export function TransactionFlow() {
     getInputStateClassName(
       formValues.walletAddress,
       fieldErrors.walletAddress,
-      kind === "withdrawal" && Boolean(formValues.walletAddress) && !fieldErrors.walletAddress,
+      kind === "withdrawal" &&
+        Boolean(formValues.walletAddress) &&
+        !fieldErrors.walletAddress,
     ),
   ].join(" ");
 
@@ -323,8 +351,9 @@ export function TransactionFlow() {
               </span>
               <h1 className={styles.heading}>Deposit and withdrawal flow</h1>
               <p className={styles.intro}>
-                Validate amounts and wallet conditions, confirm fees and request references,
-                then review pending, success, and failure states from one mobile-friendly surface.
+                Validate amounts and wallet conditions, confirm fees and request
+                references, then review pending, success, and failure states
+                from one mobile-friendly surface.
               </p>
             </div>
 
@@ -351,14 +380,16 @@ export function TransactionFlow() {
               <div className={styles.controlPanel}>
                 <p className={styles.controlLabel}>Screenshot states</p>
                 <div className={styles.segmentRow}>
-                  {([
-                    "interactive",
-                    "validation",
-                    "confirm",
-                    "pending",
-                    "success",
-                    "failure",
-                  ] as const).map((option) => (
+                  {(
+                    [
+                      "interactive",
+                      "validation",
+                      "confirm",
+                      "pending",
+                      "success",
+                      "failure",
+                    ] as const
+                  ).map((option) => (
                     <button
                       className={[
                         styles.segmentButton,
@@ -401,7 +432,10 @@ export function TransactionFlow() {
 
               <div className={styles.statusRow}>
                 {statusChips.map((chip) => (
-                  <span className={`${styles.statusChip} ${getToneClassName(chip.tone)}`} key={chip.label}>
+                  <span
+                    className={`${styles.statusChip} ${getToneClassName(chip.tone)}`}
+                    key={chip.label}
+                  >
                     {chip.label}
                   </span>
                 ))}
@@ -443,20 +477,37 @@ export function TransactionFlow() {
                         className={amountInputClassName}
                         id="amount"
                         inputMode="decimal"
-                        onChange={(event) => updateField("amount", sanitizeAmount(event.target.value))}
+                        onChange={(event) =>
+                          updateField(
+                            "amount",
+                            sanitizeAmount(event.target.value),
+                          )
+                        }
                         placeholder="0.00"
                         value={formValues.amount}
                       />
-                      <button className={styles.inlineButton} onClick={handleMaxAmount} type="button">
+                      <button
+                        className={styles.inlineButton}
+                        onClick={handleMaxAmount}
+                        type="button"
+                      >
                         Max
                       </button>
                     </div>
 
-                    <p className={styles.supportingCopy}>{context.amountHint}</p>
+                    <p className={styles.supportingCopy}>
+                      {context.amountHint}
+                    </p>
                     {fieldErrors.amount ? (
-                      <p className={`${styles.fieldMessage} ${styles.errorMessage}`}>{fieldErrors.amount}</p>
+                      <p
+                        className={`${styles.fieldMessage} ${styles.errorMessage}`}
+                      >
+                        {fieldErrors.amount}
+                      </p>
                     ) : formValues.amount ? (
-                      <p className={`${styles.fieldMessage} ${styles.successMessage}`}>
+                      <p
+                        className={`${styles.fieldMessage} ${styles.successMessage}`}
+                      >
                         Amount looks valid for the next confirmation step.
                       </p>
                     ) : null}
@@ -467,32 +518,52 @@ export function TransactionFlow() {
                       <label className={styles.fieldLabel} htmlFor="wallet">
                         {context.walletLabel}
                       </label>
-                      <span className={styles.fieldHint}>{context.reviewLabel}</span>
+                      <span className={styles.fieldHint}>
+                        {context.reviewLabel}
+                      </span>
                     </div>
 
                     {kind === "deposit" ? (
                       <>
                         <div className={styles.walletDisplay}>
                           <div>
-                            <div className={styles.fieldLabel}>{context.connectedWalletLabel}</div>
-                            <div className={styles.walletAddress}>{context.connectedWalletAddress}</div>
+                            <div className={styles.fieldLabel}>
+                              {context.connectedWalletLabel}
+                            </div>
+                            <div className={styles.walletAddress}>
+                              {context.connectedWalletAddress}
+                            </div>
                           </div>
                           <button
                             className={styles.walletToggle}
-                            onClick={() => updateField("walletConnected", !formValues.walletConnected)}
+                            onClick={() =>
+                              updateField(
+                                "walletConnected",
+                                !formValues.walletConnected,
+                              )
+                            }
                             type="button"
                           >
-                            {formValues.walletConnected ? "Disconnect" : "Reconnect"}
+                            {formValues.walletConnected
+                              ? "Disconnect"
+                              : "Reconnect"}
                           </button>
                         </div>
-                        <p className={styles.supportingCopy}>{context.walletHint}</p>
+                        <p className={styles.supportingCopy}>
+                          {context.walletHint}
+                        </p>
                         {fieldErrors.walletConnected ? (
-                          <p className={`${styles.fieldMessage} ${styles.errorMessage}`}>
+                          <p
+                            className={`${styles.fieldMessage} ${styles.errorMessage}`}
+                          >
                             {fieldErrors.walletConnected}
                           </p>
                         ) : (
-                          <p className={`${styles.fieldMessage} ${styles.successMessage}`}>
-                            Deposit uses the connected funding wallet shown above.
+                          <p
+                            className={`${styles.fieldMessage} ${styles.successMessage}`}
+                          >
+                            Deposit uses the connected funding wallet shown
+                            above.
                           </p>
                         )}
                       </>
@@ -501,31 +572,52 @@ export function TransactionFlow() {
                         <input
                           className={walletInputClassName}
                           id="wallet"
-                          onChange={(event) => updateField("walletAddress", event.target.value.toUpperCase().trim())}
+                          onChange={(event) =>
+                            updateField(
+                              "walletAddress",
+                              event.target.value.toUpperCase().trim(),
+                            )
+                          }
                           placeholder="G..."
                           value={formValues.walletAddress}
                         />
                         <div className={styles.connectRow}>
                           <button
                             className={styles.walletToggle}
-                            onClick={() => updateField("walletConnected", !formValues.walletConnected)}
+                            onClick={() =>
+                              updateField(
+                                "walletConnected",
+                                !formValues.walletConnected,
+                              )
+                            }
                             type="button"
                           >
-                            {formValues.walletConnected ? "Disconnect vault" : "Reconnect vault"}
+                            {formValues.walletConnected
+                              ? "Disconnect vault"
+                              : "Reconnect vault"}
                           </button>
-                          <span className={styles.fieldHint}>{context.walletHint}</span>
+                          <span className={styles.fieldHint}>
+                            {context.walletHint}
+                          </span>
                         </div>
                         {fieldErrors.walletAddress ? (
-                          <p className={`${styles.fieldMessage} ${styles.errorMessage}`}>
+                          <p
+                            className={`${styles.fieldMessage} ${styles.errorMessage}`}
+                          >
                             {fieldErrors.walletAddress}
                           </p>
                         ) : (
-                          <p className={`${styles.fieldMessage} ${styles.successMessage}`}>
-                            Destination address passes the Stellar public key format check.
+                          <p
+                            className={`${styles.fieldMessage} ${styles.successMessage}`}
+                          >
+                            Destination address passes the Stellar public key
+                            format check.
                           </p>
                         )}
                         {fieldErrors.walletConnected ? (
-                          <p className={`${styles.fieldMessage} ${styles.errorMessage}`}>
+                          <p
+                            className={`${styles.fieldMessage} ${styles.errorMessage}`}
+                          >
                             {fieldErrors.walletConnected}
                           </p>
                         ) : null}
@@ -534,16 +626,27 @@ export function TransactionFlow() {
                   </div>
 
                   {requestMessage ? (
-                    <p className={`${styles.fieldMessage} ${styles.warningMessage}`}>{requestMessage}</p>
+                    <p
+                      className={`${styles.fieldMessage} ${styles.warningMessage}`}
+                    >
+                      {requestMessage}
+                    </p>
                   ) : null}
 
                   <div className={styles.actionBar}>
                     <div className={styles.actionMeta}>
-                      Primary action stays anchored at the bottom on mobile for longer forms.
+                      Primary action stays anchored at the bottom on mobile for
+                      longer forms.
                     </div>
                     <div className={styles.actionButtons}>
-                      <button className={`${styles.button} ${styles.buttonPrimary}`} disabled={isSubmitting} type="submit">
-                        {isSubmitting ? "Preparing..." : context.primaryActionLabel}
+                      <button
+                        className={`${styles.button} ${styles.buttonPrimary}`}
+                        disabled={isSubmitting}
+                        type="submit"
+                      >
+                        {isSubmitting
+                          ? "Preparing..."
+                          : context.primaryActionLabel}
                       </button>
                     </div>
                   </div>
@@ -553,49 +656,72 @@ export function TransactionFlow() {
               {stage === "confirm" && quote ? (
                 <div className={styles.form}>
                   <div className={styles.summaryCard}>
-                    <p className={styles.heroAmount}>{formatCurrency(quote.amount)}</p>
+                    <p className={styles.heroAmount}>
+                      {formatCurrency(quote.amount)}
+                    </p>
                     <p className={styles.heroSubtext}>
-                      {kind === "deposit" ? "Deposit amount" : "Withdrawal amount"}
+                      {kind === "deposit"
+                        ? "Deposit amount"
+                        : "Withdrawal amount"}
                     </p>
                   </div>
 
                   <div className={styles.detailList}>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Amount</span>
-                      <span className={`${styles.detailValue} ${styles.detailValueMono}`}>
+                      <span
+                        className={`${styles.detailValue} ${styles.detailValueMono}`}
+                      >
                         {formatCurrency(quote.amount)}
                       </span>
                     </div>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Fees</span>
-                      <span className={`${styles.detailValue} ${styles.detailValueMono}`}>
+                      <span
+                        className={`${styles.detailValue} ${styles.detailValueMono}`}
+                      >
                         {formatCurrency(quote.fee)}
                       </span>
                     </div>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>
-                        {kind === "deposit" ? "Total debit" : "Net destination amount"}
+                        {kind === "deposit"
+                          ? "Total debit"
+                          : "Net destination amount"}
                       </span>
-                      <span className={`${styles.detailValue} ${styles.detailValueMono}`}>
-                        {formatCurrency(kind === "deposit" ? quote.totalDebit : quote.netAmount)}
+                      <span
+                        className={`${styles.detailValue} ${styles.detailValueMono}`}
+                      >
+                        {formatCurrency(
+                          kind === "deposit"
+                            ? quote.totalDebit
+                            : quote.netAmount,
+                        )}
                       </span>
                     </div>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Strategy</span>
-                      <span className={styles.detailValue}>{quote.strategyLabel}</span>
+                      <span className={styles.detailValue}>
+                        {quote.strategyLabel}
+                      </span>
                     </div>
                   </div>
 
                   <div className={styles.referenceCard}>
-                    <p className={styles.referenceLabel}>Transaction reference</p>
+                    <p className={styles.referenceLabel}>
+                      Transaction reference
+                    </p>
                     <p className={styles.referenceValue}>{quote.reference}</p>
                     <p className={styles.supportingCopy}>
-                      Share this reference with support if you need help tracing the request.
+                      Share this reference with support if you need help tracing
+                      the request.
                     </p>
                   </div>
 
                   <div className={styles.actionBar}>
-                    <div className={styles.actionMeta}>Confirm after reviewing amount, fees, and reference.</div>
+                    <div className={styles.actionMeta}>
+                      Confirm after reviewing amount, fees, and reference.
+                    </div>
                     <div className={styles.actionButtons}>
                       <button
                         className={`${styles.button} ${styles.buttonSecondary}`}
@@ -621,35 +747,50 @@ export function TransactionFlow() {
                   <div className={styles.pendingLayout}>
                     <div className={styles.pendingSpinner} />
                     <div className={styles.sectionHeading}>
-                      <h3 className={styles.sectionTitle}>{pending.statusLabel}</h3>
+                      <h3 className={styles.sectionTitle}>
+                        {pending.statusLabel}
+                      </h3>
                       <p className={styles.sectionCopy}>{pending.message}</p>
                     </div>
                   </div>
 
                   <div className={styles.referenceCard}>
-                    <p className={styles.referenceLabel}>Transaction reference</p>
+                    <p className={styles.referenceLabel}>
+                      Transaction reference
+                    </p>
                     <p className={styles.referenceValue}>{pending.reference}</p>
                     <p className={styles.supportingCopy}>
-                      Keep this reference visible while the transaction is moving through the network.
+                      Keep this reference visible while the transaction is
+                      moving through the network.
                     </p>
                   </div>
 
                   <div className={styles.detailList}>
                     <div className={styles.detailRow}>
-                      <span className={styles.detailLabel}>Requested amount</span>
-                      <span className={`${styles.detailValue} ${styles.detailValueMono}`}>
+                      <span className={styles.detailLabel}>
+                        Requested amount
+                      </span>
+                      <span
+                        className={`${styles.detailValue} ${styles.detailValueMono}`}
+                      >
                         {formatCurrency(pending.quote.amount)}
                       </span>
                     </div>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Fees</span>
-                      <span className={`${styles.detailValue} ${styles.detailValueMono}`}>
+                      <span
+                        className={`${styles.detailValue} ${styles.detailValueMono}`}
+                      >
                         {formatCurrency(pending.quote.fee)}
                       </span>
                     </div>
                     <div className={styles.detailRow}>
-                      <span className={styles.detailLabel}>Settlement target</span>
-                      <span className={styles.detailValue}>{pending.quote.estimatedSettlement}</span>
+                      <span className={styles.detailLabel}>
+                        Settlement target
+                      </span>
+                      <span className={styles.detailValue}>
+                        {pending.quote.estimatedSettlement}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -660,53 +801,75 @@ export function TransactionFlow() {
                   <div className={styles.receiptBanner}>
                     <span
                       className={`${styles.statusChip} ${
-                        receipt.status === "success" ? styles.statusSuccess : styles.statusError
+                        receipt.status === "success"
+                          ? styles.statusSuccess
+                          : styles.statusError
                       }`}
                     >
                       {receipt.status === "success" ? "Success" : "Failed"}
                     </span>
                     <h3 className={styles.receiptTitle}>{receipt.message}</h3>
                     {receipt.failureReason ? (
-                      <p className={`${styles.fieldMessage} ${styles.errorMessage}`}>{receipt.failureReason}</p>
+                      <p
+                        className={`${styles.fieldMessage} ${styles.errorMessage}`}
+                      >
+                        {receipt.failureReason}
+                      </p>
                     ) : (
-                      <p className={`${styles.fieldMessage} ${styles.successMessage}`}>
-                        Receipt includes the amount, fees, and reference for follow-up.
+                      <p
+                        className={`${styles.fieldMessage} ${styles.successMessage}`}
+                      >
+                        Receipt includes the amount, fees, and reference for
+                        follow-up.
                       </p>
                     )}
                   </div>
 
                   <div className={styles.referenceCard}>
-                    <p className={styles.referenceLabel}>Transaction reference</p>
+                    <p className={styles.referenceLabel}>
+                      Transaction reference
+                    </p>
                     <p className={styles.referenceValue}>{receipt.reference}</p>
                     <p className={styles.supportingCopy}>
-                      {receipt.explorerLabel ?? "Retry after reviewing the validation state and updated quote."}
+                      {receipt.explorerLabel ??
+                        "Retry after reviewing the validation state and updated quote."}
                     </p>
                   </div>
 
                   <div className={styles.detailList}>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Amount</span>
-                      <span className={`${styles.detailValue} ${styles.detailValueMono}`}>
+                      <span
+                        className={`${styles.detailValue} ${styles.detailValueMono}`}
+                      >
                         {formatCurrency(receipt.quote.amount)}
                       </span>
                     </div>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Fees</span>
-                      <span className={`${styles.detailValue} ${styles.detailValueMono}`}>
+                      <span
+                        className={`${styles.detailValue} ${styles.detailValueMono}`}
+                      >
                         {formatCurrency(receipt.quote.fee)}
                       </span>
                     </div>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>
-                        {kind === "deposit" ? "Credited amount" : "Destination amount"}
+                        {kind === "deposit"
+                          ? "Credited amount"
+                          : "Destination amount"}
                       </span>
-                      <span className={`${styles.detailValue} ${styles.detailValueMono}`}>
+                      <span
+                        className={`${styles.detailValue} ${styles.detailValueMono}`}
+                      >
                         {formatCurrency(receipt.quote.netAmount)}
                       </span>
                     </div>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Settled at</span>
-                      <span className={styles.detailValue}>{formatTimestamp(receipt.settledAt)}</span>
+                      <span className={styles.detailValue}>
+                        {formatTimestamp(receipt.settledAt)}
+                      </span>
                     </div>
                   </div>
 
@@ -726,7 +889,11 @@ export function TransactionFlow() {
                       </button>
                       <button
                         className={`${styles.button} ${styles.buttonPrimary}`}
-                        onClick={() => handleKindChange(kind === "deposit" ? "withdrawal" : "deposit")}
+                        onClick={() =>
+                          handleKindChange(
+                            kind === "deposit" ? "withdrawal" : "deposit",
+                          )
+                        }
                         type="button"
                       >
                         Switch flow
@@ -743,20 +910,28 @@ export function TransactionFlow() {
                 <div className={styles.asideList}>
                   <div className={styles.asideItem}>
                     <span className={styles.asideLabel}>Connected wallet</span>
-                    <span className={styles.asideValue}>{context.connectedWalletLabel}</span>
-                    <span className={`${styles.asideValue} ${styles.asideValueMono}`}>
+                    <span className={styles.asideValue}>
+                      {context.connectedWalletLabel}
+                    </span>
+                    <span
+                      className={`${styles.asideValue} ${styles.asideValueMono}`}
+                    >
                       {context.connectedWalletAddress}
                     </span>
                   </div>
                   <div className={styles.asideItem}>
                     <span className={styles.asideLabel}>Available balance</span>
-                    <span className={`${styles.asideValue} ${styles.asideValueMono}`}>
+                    <span
+                      className={`${styles.asideValue} ${styles.asideValueMono}`}
+                    >
                       {formatCurrency(context.availableAmount)}
                     </span>
                   </div>
                   <div className={styles.asideItem}>
                     <span className={styles.asideLabel}>Strategy</span>
-                    <span className={styles.asideValue}>{context.strategyLabel}</span>
+                    <span className={styles.asideValue}>
+                      {context.strategyLabel}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -766,15 +941,21 @@ export function TransactionFlow() {
                 <div className={styles.asideList}>
                   <div className={styles.asideItem}>
                     <span className={styles.asideLabel}>Minimum</span>
-                    <span className={styles.asideValue}>{formatCurrency(context.minAmount)}</span>
+                    <span className={styles.asideValue}>
+                      {formatCurrency(context.minAmount)}
+                    </span>
                   </div>
                   <div className={styles.asideItem}>
                     <span className={styles.asideLabel}>Fees</span>
-                    <span className={styles.asideValue}>{formatCurrency(context.fee)}</span>
+                    <span className={styles.asideValue}>
+                      {formatCurrency(context.fee)}
+                    </span>
                   </div>
                   <div className={styles.asideItem}>
                     <span className={styles.asideLabel}>Lifecycle</span>
-                    <span className={styles.asideValue}>Pending, success, and failure states included</span>
+                    <span className={styles.asideValue}>
+                      Pending, success, and failure states included
+                    </span>
                   </div>
                 </div>
               </div>
@@ -782,10 +963,16 @@ export function TransactionFlow() {
               <div className={styles.asideSection}>
                 <h3 className={styles.asideTitle}>Routes</h3>
                 <div className={styles.linkRow}>
-                  <Link className={styles.inlineLink} href={`/dashboard?theme=${theme}`}>
+                  <Link
+                    className={styles.inlineLink}
+                    href={`/dashboard?theme=${theme}`}
+                  >
                     Portfolio overview
                   </Link>
-                  <Link className={styles.inlineLink} href={`/dashboard/transactions?theme=${theme}`}>
+                  <Link
+                    className={styles.inlineLink}
+                    href={`/dashboard/transactions?theme=${theme}`}
+                  >
                     Transaction flow
                   </Link>
                 </div>
