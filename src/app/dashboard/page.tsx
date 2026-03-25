@@ -1,5 +1,5 @@
+import { PortfolioDashboard } from "@/src/components/dashboard/PortfolioDashboard";
 import { Suspense } from "react";
-import { PortfolioDashboard } from "@/components/dashboard/PortfolioDashboard";
 
 export default function DashboardPage() {
   return (

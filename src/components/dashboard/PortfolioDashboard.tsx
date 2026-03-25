@@ -4,12 +4,12 @@ import { startTransition, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./portfolio-dashboard.module.css";
 import {
-  type ActivityItem,
-  type AllocationItem,
-  type ChartTone,
-  type PortfolioPayload,
-  type PortfolioScenario,
-} from "@/lib/portfolio";
+  ActivityItem,
+  AllocationItem,
+  ChartTone,
+  PortfolioPayload,
+  PortfolioScenario,
+} from "@/src/lib/portfolio";
 import {
   formatCurrency,
   formatPercent,
@@ -17,7 +17,7 @@ import {
   formatSignedPercent,
   formatSyncLabel,
   formatTimestamp,
-} from "@/lib/formatters";
+} from "@/src/lib/formatters";
 
 type ThemeMode = "light" | "dark";
 
@@ -51,7 +51,13 @@ const activityLabels: Record<ActivityItem["kind"], string> = {
   withdrawal: "Withdrawal",
 };
 
-function MetricCard({ helper, label, mono = false, tone, value }: MetricCardProps) {
+function MetricCard({
+  helper,
+  label,
+  mono = false,
+  tone,
+  value,
+}: MetricCardProps) {
   const toneClassName =
     tone === "positive"
       ? styles.valuePositive
@@ -90,7 +96,9 @@ function EmptyState({ copy, cta, icon, onAction }: EmptyStateProps) {
   );
 }
 
-function getScenario(searchParams: Pick<URLSearchParams, "get">): PortfolioScenario {
+function getScenario(
+  searchParams: Pick<URLSearchParams, "get">,
+): PortfolioScenario {
   return searchParams.get("scenario") === "empty" ? "empty" : "live";
 }
 
@@ -152,7 +160,10 @@ function SummarySkeleton() {
   return (
     <>
       {Array.from({ length: 4 }).map((_, index) => (
-        <article className={`${styles.card} ${styles.metricCard} ${styles.skeletonCard}`} key={index}>
+        <article
+          className={`${styles.card} ${styles.metricCard} ${styles.skeletonCard}`}
+          key={index}
+        >
           <span className={styles.skeletonLine} />
           <span className={styles.skeletonValue} />
           <span className={`${styles.skeletonLine} ${styles.skeletonCopy}`} />
@@ -186,7 +197,9 @@ export function PortfolioDashboard() {
         });
 
         if (!response.ok) {
-          throw new Error(`Unable to load portfolio widgets (${response.status})`);
+          throw new Error(
+            `Unable to load portfolio widgets (${response.status})`,
+          );
         }
 
         const payload = (await response.json()) as PortfolioPayload;
@@ -272,8 +285,9 @@ export function PortfolioDashboard() {
               </span>
               <h1 className={styles.heading}>NeuroWealth overview</h1>
               <p className={styles.subheading}>
-                Total balance, yield, APY, strategy, allocation, and recent activity in a
-                single review surface with measurable light and dark theme parity.
+                Total balance, yield, APY, strategy, allocation, and recent
+                activity in a single review surface with measurable light and
+                dark theme parity.
               </p>
             </div>
 
@@ -300,14 +314,18 @@ export function PortfolioDashboard() {
               <div className={styles.controlCard}>
                 <p className={styles.controlLabel}>Scenario preview</p>
                 <div className={styles.segmentGroup}>
-                  {([
-                    { label: "Live widgets", value: "live" },
-                    { label: "Empty states", value: "empty" },
-                  ] as const).map((option) => (
+                  {(
+                    [
+                      { label: "Live widgets", value: "live" },
+                      { label: "Empty states", value: "empty" },
+                    ] as const
+                  ).map((option) => (
                     <button
                       className={[
                         styles.segmentButton,
-                        scenario === option.value ? styles.segmentButtonActive : "",
+                        scenario === option.value
+                          ? styles.segmentButtonActive
+                          : "",
                       ].join(" ")}
                       key={option.value}
                       onClick={() => updateParam("scenario", option.value)}
@@ -327,25 +345,35 @@ export function PortfolioDashboard() {
                 {portfolio?.notice ?? "Loading portfolio widget state..."}
               </span>
               <span className={styles.bannerMeta}>
-                {portfolio ? formatSyncLabel(portfolio.updatedAt) : "Syncing portfolio data"}
+                {portfolio
+                  ? formatSyncLabel(portfolio.updatedAt)
+                  : "Syncing portfolio data"}
               </span>
             </div>
 
             <div className={styles.bannerChips}>
               <span className={styles.chip}>Theme: {theme}</span>
               <span className={styles.chip}>
-                Source: {portfolio ? renderSourceLabel(portfolio.source) : "Loading"}
+                Source:{" "}
+                {portfolio ? renderSourceLabel(portfolio.source) : "Loading"}
               </span>
             </div>
           </div>
 
           {error && !portfolio ? (
             <div className={`${styles.card} ${styles.errorState}`}>
-              <h2 className={styles.errorTitle}>Portfolio widgets unavailable</h2>
+              <h2 className={styles.errorTitle}>
+                Portfolio widgets unavailable
+              </h2>
               <p className={styles.errorCopy}>
-                {error} The dashboard can retry once connectivity to the portfolio API is restored.
+                {error} The dashboard can retry once connectivity to the
+                portfolio API is restored.
               </p>
-              <button className={styles.emptyButton} onClick={resetToLivePreview} type="button">
+              <button
+                className={styles.emptyButton}
+                onClick={resetToLivePreview}
+                type="button"
+              >
                 Retry widgets
               </button>
             </div>
@@ -355,7 +383,9 @@ export function PortfolioDashboard() {
                 {loading ? (
                   <SummarySkeleton />
                 ) : (
-                  summaryCards.map((card) => <MetricCard {...card} key={card.label} />)
+                  summaryCards.map((card) => (
+                    <MetricCard {...card} key={card.label} />
+                  ))
                 )}
               </div>
 
@@ -365,7 +395,8 @@ export function PortfolioDashboard() {
                     <div>
                       <h2 className={styles.panelTitle}>Asset allocation</h2>
                       <p className={styles.panelMeta}>
-                        Visible deployment mix across strategy buckets and reserve capital.
+                        Visible deployment mix across strategy buckets and
+                        reserve capital.
                       </p>
                     </div>
                     {!loading && portfolio ? (
@@ -379,13 +410,19 @@ export function PortfolioDashboard() {
                   {loading ? (
                     <div className={styles.emptyState}>
                       <span className={styles.skeletonValue} />
-                      <span className={`${styles.skeletonLine} ${styles.skeletonCopy}`} />
+                      <span
+                        className={`${styles.skeletonLine} ${styles.skeletonCopy}`}
+                      />
                     </div>
                   ) : portfolio && portfolio.allocation.length > 0 ? (
                     <div className={styles.allocationLayout}>
                       <div
                         className={styles.donut}
-                        style={{ background: buildDonutBackground(portfolio.allocation) }}
+                        style={{
+                          background: buildDonutBackground(
+                            portfolio.allocation,
+                          ),
+                        }}
                       >
                         <div className={styles.donutInner}>
                           <span className={styles.donutLabel}>Allocated</span>
@@ -413,8 +450,12 @@ export function PortfolioDashboard() {
                                   style={{ background: toneMap[item.tone] }}
                                 />
                                 <div>
-                                  <p className={styles.allocationName}>{item.label}</p>
-                                  <p className={styles.allocationSymbol}>{item.symbol}</p>
+                                  <p className={styles.allocationName}>
+                                    {item.label}
+                                  </p>
+                                  <p className={styles.allocationSymbol}>
+                                    {item.symbol}
+                                  </p>
                                 </div>
                               </div>
                               <span className={styles.allocationShare}>
@@ -424,7 +465,9 @@ export function PortfolioDashboard() {
                                 <span className={styles.allocationAmount}>
                                   {formatCurrency(item.amount)}
                                 </span>
-                                <span className={`${styles.allocationChange} ${changeClassName}`}>
+                                <span
+                                  className={`${styles.allocationChange} ${changeClassName}`}
+                                >
                                   {formatSignedPercent(item.change)}
                                 </span>
                               </div>
@@ -448,7 +491,8 @@ export function PortfolioDashboard() {
                     <div>
                       <h2 className={styles.panelTitle}>Recent activity</h2>
                       <p className={styles.panelMeta}>
-                        Latest deposits, yield events, rebalances, and scheduled cash flows.
+                        Latest deposits, yield events, rebalances, and scheduled
+                        cash flows.
                       </p>
                     </div>
                     {!loading && portfolio ? (
@@ -462,7 +506,9 @@ export function PortfolioDashboard() {
                   {loading ? (
                     <div className={styles.emptyState}>
                       <span className={styles.skeletonValue} />
-                      <span className={`${styles.skeletonLine} ${styles.skeletonCopy}`} />
+                      <span
+                        className={`${styles.skeletonLine} ${styles.skeletonCopy}`}
+                      />
                     </div>
                   ) : portfolio && portfolio.activity.length > 0 ? (
                     <div className={styles.activityList}>
@@ -484,24 +530,36 @@ export function PortfolioDashboard() {
 
                         return (
                           <div className={styles.activityItem} key={item.id}>
-                            <div className={styles.activityIcon}>{renderActivityIcon(item.kind)}</div>
+                            <div className={styles.activityIcon}>
+                              {renderActivityIcon(item.kind)}
+                            </div>
 
                             <div className={styles.activityBody}>
                               <div className={styles.activityTitleRow}>
-                                <p className={styles.activityTitle}>{item.title}</p>
-                                <span className={`${styles.statusBadge} ${statusClassName}`}>
+                                <p className={styles.activityTitle}>
+                                  {item.title}
+                                </p>
+                                <span
+                                  className={`${styles.statusBadge} ${statusClassName}`}
+                                >
                                   {item.status}
                                 </span>
                               </div>
-                              <p className={styles.activityDetail}>{item.detail}</p>
+                              <p className={styles.activityDetail}>
+                                {item.detail}
+                              </p>
                               <div className={styles.activityMeta}>
                                 <span>{activityLabels[item.kind]}</span>
                                 <span>{formatTimestamp(item.occurredAt)}</span>
                               </div>
                             </div>
 
-                            <div className={`${styles.activityAmount} ${amountClassName}`}>
-                              {item.amount == null ? "No amount" : formatSignedCurrency(item.amount)}
+                            <div
+                              className={`${styles.activityAmount} ${amountClassName}`}
+                            >
+                              {item.amount == null
+                                ? "No amount"
+                                : formatSignedCurrency(item.amount)}
                             </div>
                           </div>
                         );
@@ -527,7 +585,13 @@ export function PortfolioDashboard() {
 
 function PieIcon() {
   return (
-    <svg aria-hidden="true" fill="none" height="24" viewBox="0 0 24 24" width="24">
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="24"
+      viewBox="0 0 24 24"
+      width="24"
+    >
       <path
         d="M11 3a9 9 0 1 0 9 9h-9V3Z"
         stroke="currentColor"
@@ -546,7 +610,13 @@ function PieIcon() {
 
 function ActivityIcon() {
   return (
-    <svg aria-hidden="true" fill="none" height="24" viewBox="0 0 24 24" width="24">
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="24"
+      viewBox="0 0 24 24"
+      width="24"
+    >
       <path
         d="M5 19.25h14"
         stroke="currentColor"
@@ -570,7 +640,13 @@ function ActivityIcon() {
 
 function ArrowDownIcon() {
   return (
-    <svg aria-hidden="true" fill="none" height="20" viewBox="0 0 24 24" width="20">
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="20"
+      viewBox="0 0 24 24"
+      width="20"
+    >
       <path
         d="M12 5v14"
         stroke="currentColor"
@@ -590,7 +666,13 @@ function ArrowDownIcon() {
 
 function ArrowUpIcon() {
   return (
-    <svg aria-hidden="true" fill="none" height="20" viewBox="0 0 24 24" width="20">
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="20"
+      viewBox="0 0 24 24"
+      width="20"
+    >
       <path
         d="M12 19V5"
         stroke="currentColor"
@@ -610,7 +692,13 @@ function ArrowUpIcon() {
 
 function ShuffleIcon() {
   return (
-    <svg aria-hidden="true" fill="none" height="20" viewBox="0 0 24 24" width="20">
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="20"
+      viewBox="0 0 24 24"
+      width="20"
+    >
       <path
         d="M16 4h4v4"
         stroke="currentColor"
@@ -652,7 +740,13 @@ function ShuffleIcon() {
 
 function SparkIcon() {
   return (
-    <svg aria-hidden="true" fill="none" height="20" viewBox="0 0 24 24" width="20">
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="20"
+      viewBox="0 0 24 24"
+      width="20"
+    >
       <path
         d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"
         stroke="currentColor"

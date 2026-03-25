@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
   buildScenarioPayload,
   normalizePortfolioPayload,
   parseScenario,
-} from "@/lib/portfolio";
+} from "@/src/lib/portfolio";
+import { NextRequest, NextResponse } from "next/server";
 
 function resolveEndpoint(baseUrl: string, pathOrUrl: string): string {
   if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
@@ -11,7 +11,9 @@ function resolveEndpoint(baseUrl: string, pathOrUrl: string): string {
   }
 
   const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
-  const normalizedPath = pathOrUrl.startsWith("/") ? pathOrUrl.slice(1) : pathOrUrl;
+  const normalizedPath = pathOrUrl.startsWith("/")
+    ? pathOrUrl.slice(1)
+    : pathOrUrl;
 
   return new URL(normalizedPath, normalizedBase).toString();
 }
@@ -19,7 +21,8 @@ function resolveEndpoint(baseUrl: string, pathOrUrl: string): string {
 export async function GET(request: NextRequest) {
   const scenario = parseScenario(request.nextUrl.searchParams.get("scenario"));
   const apiBaseUrl = process.env.NEUROWEALTH_API_BASE_URL;
-  const portfolioPath = process.env.NEUROWEALTH_PORTFOLIO_PATH ?? "/portfolio/overview";
+  const portfolioPath =
+    process.env.NEUROWEALTH_PORTFOLIO_PATH ?? "/portfolio/overview";
 
   if (scenario === "empty") {
     return NextResponse.json(buildScenarioPayload("empty"), {
